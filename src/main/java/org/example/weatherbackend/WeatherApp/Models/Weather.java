@@ -1,4 +1,4 @@
-package Models;
+package org.example.weatherbackend.WeatherApp.Models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,8 +14,9 @@ public class Weather {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String temperature;
     private long temp;
     private long pressure;
     private long humidity;
+
+
 }
