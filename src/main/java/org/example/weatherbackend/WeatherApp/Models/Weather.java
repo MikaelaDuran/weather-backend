@@ -1,10 +1,10 @@
 package org.example.weatherbackend.WeatherApp.Models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -18,5 +18,9 @@ public class Weather {
     private long pressure;
     private long humidity;
 
+    //När data hämtas från API:et
+    //@CreationTimestamp
+    //@Column(updatable = false)
+    private LocalDateTime timestamp;
 
 }

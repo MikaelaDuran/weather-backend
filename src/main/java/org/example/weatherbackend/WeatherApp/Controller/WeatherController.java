@@ -3,6 +3,8 @@ package org.example.weatherbackend.WeatherApp.Controller;
 import org.example.weatherbackend.WeatherApp.Models.Weather;
 import org.springframework.web.bind.annotation.*;
 import org.example.weatherbackend.WeatherApp.Repo.WeatherRepo;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -24,6 +26,7 @@ public class WeatherController {
 
     @PostMapping("/add")
     public Weather addWeather(@RequestBody Weather weather) {
+        weather.setTimestamp(LocalDateTime.now()); //Om man vill lägga till egen data
         return weatherRepo.save(weather);
     }
 
@@ -32,5 +35,17 @@ public class WeatherController {
         return weatherRepo.findById(id).orElse(null);
     }
 
-    // Define endpoints here to handle HTTP requests
+    @PostMapping("/update/{id}")
+    public Weather updateWeather(@PathVariable Integer id, @RequestBody Weather weather) {
+        Weather existingWeather = weatherRepo.findById(id).orElse(null);
+        if (existingWeather != null) {
+            existingWeather.setTemp(weather.getTemp());
+            existingWeather.setPressure(weather.getPressure());
+            existingWeather.setHumidity(weather.getHumidity());
+            existingWeather.setTimestamp(LocalDateTime.now()); // Uppdatera timestamp
+            return weatherRepo.save(existingWeather);
+        }
+        return null; // Eller hantera fel på annat sätt
+    }
+
 }
