@@ -51,22 +51,36 @@ public class MqttSubscriber {
                         IncomingWeather incoming = mapper.readValue(payload, IncomingWeather.class);
 
                         Weather weather = new Weather();
-                        weather.setTemp((incoming.getTemperature()/100)); // Omvandla till Celsius
-                        weather.setPressure((incoming.getPressure()/256)/100); // Omvandla till hPa
-                        weather.setHumidity(incoming.getHumidity()/1024); // Omvandla till procent
+
+                        // Temperatur i Celsius, trunkerad till 2 decimaler
+                        double temp = incoming.getTemperature() / 100.0;
+                        temp = Math.floor(temp * 100) / 100.0;
+                        weather.setTemp(temp);
+
+                        // Tryck i hPa, trunkerad till 2 decimaler
+                        double pressure = (incoming.getPressure() / 256.0) / 100.0;
+                        pressure = Math.floor(pressure * 100) / 100.0;
+                        weather.setPressure(pressure);
+
+                        // Luftfuktighet i %, trunkerad till 2 decimaler
+                        double humidity = incoming.getHumidity() / 1024.0;
+                        humidity = Math.floor(humidity * 100) / 100.0;
+                        weather.setHumidity(humidity);
 
                         weatherService.saveWeather(weather);
                         System.out.println("✅ Sparad till DB via service");
+
                     } catch (Exception e) {
                         System.err.println("❌ Fel vid hantering av meddelande: " + e.getMessage());
                         e.printStackTrace();
                     }
                 }
-
                 @Override
                 public void deliveryComplete(IMqttDeliveryToken token) {
-                    // Ej använd här, men måste implementeras
+                    // Inget att göra här för en subscriber – används bara för publish
                 }
+
+
             });
 
             client.connect(options);
