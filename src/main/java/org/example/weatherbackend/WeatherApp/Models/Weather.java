@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class Weather {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,9 +20,7 @@ public class Weather {
     private long pressure;
     private long humidity;
 
-    //När data hämtas från API:et
-    //@CreationTimestamp
-    //@Column(updatable = false)
+
     private LocalDateTime timestamp;
 
 }
