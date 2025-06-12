@@ -9,8 +9,8 @@ import lombok.Setter;
 public class IncomingWeather {
 
 
-    private long temp;
-    private long pressure;
-    private long humidity;
+    private double temperature;
+    private double pressure;
+    private double humidity;
 
     }

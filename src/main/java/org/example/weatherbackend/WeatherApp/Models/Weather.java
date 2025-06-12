@@ -16,9 +16,9 @@ public class Weather {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private long temp;
-    private long pressure;
-    private long humidity;
+    private double temp;
+    private double pressure;
+    private double humidity;
 
 
     private LocalDateTime timestamp;
