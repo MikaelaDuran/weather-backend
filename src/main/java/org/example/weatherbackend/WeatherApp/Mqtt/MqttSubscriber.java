@@ -37,6 +37,11 @@ public class MqttSubscriber {
             options.setKeepAliveInterval(60); // 🟢 Håll anslutningen levande
             options.setAutomaticReconnect(true); // 🔄 Automatisk återanslutning
 
+            // 🔐 Lägg till användarnamn och lösenord
+            options.setUserName("pico_w"); // ersätt med ditt faktiska användarnamn
+            options.setPassword("pico123".toCharArray()); // Lösenord
+
+
             client.setCallback(new MqttCallback() {
                 @Override
                 public void connectionLost(Throwable cause) {
@@ -78,7 +83,7 @@ public class MqttSubscriber {
 
 
                         // 🛑 Kontrollera att värdena är inom rimliga gränser
-                        if (humidity < MIN_HUMIDITY || humidity > MAX_HUMIDITY || pressure < MIN_PRESSURE || pressure > MAX_PRESSURE || temp < -MIN_TEMP || temp > MAX_TEMP) {
+                        if (humidity < MIN_HUMIDITY || humidity > MAX_HUMIDITY || pressure < MIN_PRESSURE || pressure > MAX_PRESSURE || temp < MIN_TEMP || temp > MAX_TEMP) {
                             System.out.println("⚠️ Ologiska data – sparas inte:");
                             System.out.println("   Temperatur: " + temp + " °C");
                             System.out.println("   Tryck: " + pressure + " hPa");

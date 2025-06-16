@@ -16,7 +16,7 @@ public enum DecimalConverter {
     }
 
     /**
-     * Trunkerar ett tal till angivet antal decimaler.
+     * Kapar ett tal till angivet antal decimaler.
      */
     public double truncate(double value) {
         double factor = Math.pow(10, decimals);

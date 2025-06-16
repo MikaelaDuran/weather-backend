@@ -4,7 +4,7 @@ import org.example.weatherbackend.WeatherApp.Models.Weather;
 
 import java.util.List;
 
-public interface WeatherService {
+public interface WeatherService  {
     List<Weather> getAllWeather();
     Weather saveWeather(Weather weather);
     Weather getWeatherById(int id);

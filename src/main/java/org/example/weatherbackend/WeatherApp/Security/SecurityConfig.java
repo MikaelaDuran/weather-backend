@@ -20,11 +20,8 @@ public class SecurityConfig {
                 // 🔐 Definiera vilka requests som kräver autentisering
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/weather/all").permitAll()  // öppet för alla
-                        .anyRequest().authenticated()                // alla andra kräver inloggning
-                )
-
-                // 🔐 Aktiverar HTTP Basic Authentication (ej deprecated)
-                .httpBasic(withDefaults()); // detta är det moderna sättet
+                        //.anyRequest().authenticated()                // alla andra kräver inloggning
+                );
 
         return http.build();
     }
