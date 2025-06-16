@@ -1,51 +1,46 @@
 package org.example.weatherbackend.WeatherApp.Controller;
 
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Refill;
+import jakarta.servlet.http.HttpServletRequest;
 import org.example.weatherbackend.WeatherApp.Models.Weather;
+import org.example.weatherbackend.WeatherApp.Service.WeatherService;
 import org.springframework.web.bind.annotation.*;
-import org.example.weatherbackend.WeatherApp.Repo.WeatherRepo;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.Duration;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/weather")
 @CrossOrigin(origins = "http://localhost:3000")
 public class WeatherController {
 
+    private final WeatherService weatherService;
+    private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();
 
-    private WeatherRepo weatherRepo;
+    public WeatherController(WeatherService weatherService) {
+        this.weatherService = weatherService;
+    }
 
-    public WeatherController(WeatherRepo repo) {
-        this.weatherRepo = repo;
+    // 5 anrop per minut per IP-adress
+    private Bucket resolveBucket(String ip) {
+        return buckets.computeIfAbsent(ip, k -> {
+            Refill refill = Refill.greedy(5, Duration.ofMinutes(1)); // 5 requests/minut
+            Bandwidth limit = Bandwidth.classic(5, refill);
+            return Bucket.builder().addLimit(limit).build();
+        });
     }
 
     @GetMapping("/all")
-    public List<Weather> getWeather() {
-        return weatherRepo.findAll();
-    }
+    public Object getWeather(HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        Bucket bucket = resolveBucket(ip);
 
-    @PostMapping("/add")
-    public Weather addWeather(@RequestBody Weather weather) {
-        weather.setTimestamp(LocalDateTime.now()); //Om man vill lägga till egen data
-        return weatherRepo.save(weather);
-    }
-
-    @GetMapping("/{id}")
-    public Weather getWeatherById(@PathVariable Integer id) {
-        return weatherRepo.findById(id).orElse(null);
-    }
-
-    @PostMapping("/update/{id}")
-    public Weather updateWeather(@PathVariable Integer id, @RequestBody Weather weather) {
-        Weather existingWeather = weatherRepo.findById(id).orElse(null);
-        if (existingWeather != null) {
-            existingWeather.setTemp(weather.getTemp());
-            existingWeather.setPressure(weather.getPressure());
-            existingWeather.setHumidity(weather.getHumidity());
-            existingWeather.setTimestamp(LocalDateTime.now()); // Uppdatera timestamp
-            return weatherRepo.save(existingWeather);
+        if (bucket.tryConsume(1)) {
+            return weatherService.getAllWeather();
+        } else {
+            return "⛔ Du har nått gränsen för anrop. Vänta en stund och försök igen.";
         }
-        return null; // Eller hantera fel på annat sätt
     }
-
 }

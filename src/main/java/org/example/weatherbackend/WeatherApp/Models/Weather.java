@@ -2,7 +2,7 @@ package org.example.weatherbackend.WeatherApp.Models;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
+
 
 import java.time.LocalDateTime;
 
@@ -10,17 +10,17 @@ import java.time.LocalDateTime;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class Weather {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private long temp;
-    private long pressure;
-    private long humidity;
+    private double temp;
+    private double pressure;
+    private double humidity;
 
-    //När data hämtas från API:et
-    //@CreationTimestamp
-    //@Column(updatable = false)
+
     private LocalDateTime timestamp;
 
 }
