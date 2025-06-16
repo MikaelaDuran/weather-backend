@@ -5,10 +5,13 @@ import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.example.weatherbackend.WeatherApp.DTO.IncomingWeather;
 import org.example.weatherbackend.WeatherApp.Models.Weather;
+import org.example.weatherbackend.WeatherApp.Service.DecimalConverter;
 import org.example.weatherbackend.WeatherApp.Service.WeatherService;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
+
+import static org.example.weatherbackend.WeatherApp.Enums.WeatherConstants.*;
 
 @Component
 public class MqttSubscriber {
@@ -44,8 +47,14 @@ public class MqttSubscriber {
                 @Override
                 public void messageArrived(String topic, MqttMessage message) {
                     try {
-                        String payload = new String(message.getPayload());
-                        System.out.println("📩 Mottaget från MQTT: " + payload);
+                        String payload = new String(message.getPayload()).trim();
+
+                        // 🛑 Kontroll: tomt meddelande
+                        if (payload.isEmpty() || payload.equals("{}")) {
+                            System.out.println("⚠️ Tomt eller ogiltigt payload – ignoreras");
+                            return;
+
+                        }
 
                         ObjectMapper mapper = new ObjectMapper();
                         IncomingWeather incoming = mapper.readValue(payload, IncomingWeather.class);
@@ -53,19 +62,30 @@ public class MqttSubscriber {
                         Weather weather = new Weather();
 
                         // Temperatur i Celsius, trunkerad till 2 decimaler
-                        double temp = incoming.getTemperature() / 100.0;
-                        temp = Math.floor(temp * 100) / 100.0;
+                        double temp = incoming.getTemperature() / TEMPERATURE_DIVISOR;
+                        temp = DecimalConverter.TWO.truncate(temp);
                         weather.setTemp(temp);
 
                         // Tryck i hPa, trunkerad till 2 decimaler
-                        double pressure = (incoming.getPressure() / 256.0) / 100.0;
-                        pressure = Math.floor(pressure * 100) / 100.0;
+                        double pressure = (incoming.getPressure() / PRESSURE_DIVISOR) / PRESSURE_SCALE;
+                        pressure = DecimalConverter.TWO.truncate(pressure);
                         weather.setPressure(pressure);
 
                         // Luftfuktighet i %, trunkerad till 2 decimaler
-                        double humidity = incoming.getHumidity() / 1024.0;
-                        humidity = Math.floor(humidity * 100) / 100.0;
+                        double humidity = incoming.getHumidity() / HUMIDITY_DIVISOR;
+                        humidity = DecimalConverter.TWO.truncate(humidity);
                         weather.setHumidity(humidity);
+
+
+                        // 🛑 Kontrollera att värdena är inom rimliga gränser
+                        if (humidity < MIN_HUMIDITY || humidity > MAX_HUMIDITY || pressure < MIN_PRESSURE || pressure > MAX_PRESSURE || temp < -MIN_TEMP || temp > MAX_TEMP) {
+                            System.out.println("⚠️ Ologiska data – sparas inte:");
+                            System.out.println("   Temperatur: " + temp + " °C");
+                            System.out.println("   Tryck: " + pressure + " hPa");
+                            System.out.println("   Luftfuktighet: " + humidity + " %");
+                            return;
+                        }
+
 
                         weatherService.saveWeather(weather);
                         System.out.println("✅ Sparad till DB via service");
