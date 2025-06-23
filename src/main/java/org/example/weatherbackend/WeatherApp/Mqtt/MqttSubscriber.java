@@ -15,13 +15,19 @@ import static org.example.weatherbackend.WeatherApp.Enums.WeatherConstants.*;
 
 @Component
 public class MqttSubscriber {
-
+    //192.168.61.111
     private static final String BROKER = "tcp://192.168.61.111:1883";
     private static final String CLIENT_ID = "spring-mqtt-client";
     private static final String TOPIC = "/room_meas";
+    
+    // --- NEW: Define the save interval (60 seconds in milliseconds) ---
+    private static final long SAVE_INTERVAL_MS = 60000; 
 
     private final WeatherService weatherService;
     private MqttClient client;
+    
+    // --- NEW: Keep track of the last save time ---
+    private long lastSaveTime = 0;
 
     public MqttSubscriber(WeatherService weatherService) {
         this.weatherService = weatherService;
@@ -91,9 +97,16 @@ public class MqttSubscriber {
                             return;
                         }
 
-
-                        weatherService.saveWeather(weather);
-                        System.out.println("✅ Sparad till DB via service");
+                        // --- NEW: Throttling Logic ---
+                        long currentTime = System.currentTimeMillis();
+                        if ((currentTime - lastSaveTime) > SAVE_INTERVAL_MS) {
+                            weatherService.saveWeather(weather);
+                            lastSaveTime = currentTime; // Update the last save time
+                            System.out.println("✅ Sparad till DB via service");
+                        } else {
+                            System.out.println("🔂 Data received, but skipping save to respect 60-second interval.");
+                        }
+                        // --- END NEW ---
 
                     } catch (Exception e) {
                         System.err.println("❌ Fel vid hantering av meddelande: " + e.getMessage());
@@ -104,8 +117,6 @@ public class MqttSubscriber {
                 public void deliveryComplete(IMqttDeliveryToken token) {
                     // Inget att göra här för en subscriber – används bara för publish
                 }
-
-
             });
 
             client.connect(options);
