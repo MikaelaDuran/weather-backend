@@ -1,10 +1,12 @@
 package org.example.weatherbackend.WeatherApp.Service;
 
-public interface WeatherService {
-    // Define methods that the service should implement
-    // For example:
-    // List<Weather> getAllWeatherData();
-    // Weather getWeatherById(int id);
-    // Weather saveWeatherData(Weather weather);
-    // void deleteWeatherData(int id);
+import org.example.weatherbackend.WeatherApp.Models.Weather;
+
+import java.util.List;
+
+public interface WeatherService  {
+    List<Weather> getAllWeather();
+    Weather saveWeather(Weather weather);
+    Weather getWeatherById(int id);
+    Weather updateWeather(int id, Weather weather);
 }
